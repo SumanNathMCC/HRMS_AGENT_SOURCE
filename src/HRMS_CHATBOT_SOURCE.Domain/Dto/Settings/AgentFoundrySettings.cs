@@ -16,7 +16,7 @@ public class AgentFoundrySettings
     public string? ApiKey { get; set; }
 
     [JsonProperty("api_version")]
-    public string? ApiVersion { get; set; }
+    public string? ApiVersion { get; set; } = "2024-10-21";
 
     [JsonProperty("chat_model")]
     public string ChatModel { get; set; } = "gpt-4.1";

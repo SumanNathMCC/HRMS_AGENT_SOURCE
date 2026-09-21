@@ -35,7 +35,7 @@ public class AzureFoundryEmbeddingService : IEmbeddingService
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            throw new InvalidOperationException("LLM-API-Key must be configured in Azure Key Vault for embeddings.");
+            throw new InvalidOperationException("mcc-lms-foundry-03-api-key must be configured in Azure Key Vault for embeddings.");
         }
 
         var deployment = AzureFoundryEndpointResolver.ResolveEmbeddingDeployment(foundry, configuration);
@@ -46,7 +46,7 @@ public class AzureFoundryEmbeddingService : IEmbeddingService
 
         if (string.IsNullOrWhiteSpace(apiVersion))
         {
-            throw new InvalidOperationException("LLM-Api-Version must be configured in Azure Key Vault for embeddings.");
+            throw new InvalidOperationException("AgentFoundry:ApiVersion must be configured in appsettings for embeddings.");
         }
 
         var serviceVersion = AzureOpenAiServiceVersionResolver.Resolve(apiVersion);

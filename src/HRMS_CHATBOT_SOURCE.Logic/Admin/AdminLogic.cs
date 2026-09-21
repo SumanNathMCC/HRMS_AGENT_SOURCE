@@ -3,6 +3,7 @@ using HRMS_CHATBOT_SOURCE.Domain.Dto.Request;
 using HRMS_CHATBOT_SOURCE.Domain.Dto.Response;
 using HRMS_CHATBOT_SOURCE.Domain.Dto.Settings;
 using HRMS_CHATBOT_SOURCE.Domain.Interfaces;
+using HRMS_CHATBOT_SOURCE.Infrastructure.Security;
 using HRMS_CHATBOT_SOURCE.Logic.Adapter;
 using HRMS_CHATBOT_SOURCE.Repo.Admin;
 using Microsoft.AspNetCore.Http;
@@ -47,6 +48,8 @@ public class AdminLogic : IAdminLogic
         {
             throw new ValidationException("Password is required.");
         }
+
+        ClearAuthCookie();
 
         var dbResponse = await _userProfileRepo.ValidateAdminLoginAsync(request, cancellationToken);
         var user = AdminAuthAdapter.MapValidateAdminLoginResponse(dbResponse);
@@ -116,20 +119,18 @@ public class AdminLogic : IAdminLogic
             return;
         }
 
-        httpContext.Response.Cookies.Append("hrms_admin_token", token, new CookieOptions
-        {
-            HttpOnly = false,
-            Secure = httpContext.Request.IsHttps,
-            SameSite = SameSiteMode.Lax,
-            Expires = rememberMe
-                ? DateTimeOffset.UtcNow.AddDays(_appSettings.RememberMeDays)
-                : DateTimeOffset.UtcNow.AddMinutes(_appSettings.JwtAccessTokenExpiryInMin),
-            Path = "/"
-        });
+        var expires = rememberMe
+            ? DateTimeOffset.UtcNow.AddDays(_appSettings.RememberMeDays)
+            : DateTimeOffset.UtcNow.AddMinutes(_appSettings.JwtAccessTokenExpiryInMin);
+        AdminAuthCookieHelper.Append(httpContext, token, expires);
     }
 
     private void ClearAuthCookie()
     {
-        _httpContextAccessor.HttpContext?.Response.Cookies.Delete("hrms_admin_token", new CookieOptions { Path = "/" });
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            AdminAuthCookieHelper.Delete(httpContext);
+        }
     }
 }

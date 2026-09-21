@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using HRMS_CHATBOT_SOURCE.Domain.Dto.Response;
 using HRMS_CHATBOT_SOURCE.Domain.Json;
+using HRMS_CHATBOT_SOURCE.Infrastructure.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -73,7 +74,7 @@ public class ExceptionHandlingMiddleware
 
         if (errorResponse.ErrorCode == Convert.ToString((int)HttpStatusCode.Unauthorized))
         {
-            context.Response.Cookies.Delete("hrms_admin_token", new CookieOptions { Path = "/" });
+            AdminAuthCookieHelper.Delete(context);
         }
 
         if (string.IsNullOrWhiteSpace(redirectPath))

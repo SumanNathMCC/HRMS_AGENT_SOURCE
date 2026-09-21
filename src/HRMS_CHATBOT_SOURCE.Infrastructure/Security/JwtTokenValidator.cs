@@ -105,7 +105,7 @@ public sealed class JwtTokenValidator
         if (context.Request.Cookies.TryGetValue("hrms_admin_token", out var cookieToken)
             && !string.IsNullOrWhiteSpace(cookieToken))
         {
-            return cookieToken.Trim();
+            return Uri.UnescapeDataString(cookieToken.Trim());
         }
 
         return null;

@@ -2,22 +2,17 @@ namespace HRMS_CHATBOT_SOURCE.Domain.Constants;
 
 public static class KeyVaultSecretNames
 {
-    public const string AzureSqlSecret = "Azure-SQL-Secret";
+    public const string AzureSqlSecret = "ConnectionString";
     public const string CosmosSecret = "Cosmos-Secret";
-    public const string DocumentIntelligenceApiKey = "Document-Intelligence-API-Key";
-    public const string DocumentIntelligenceEndpoint = "Document-Intelligence-Endpoint";
-    public const string LlmApiKey = "LLM-API-Key";
-    public const string LlmEndpoint = "LLM-Endpoint";
-    public const string LlmOpenAiEndpoint = "LLM-Endpoint";
-    public const string LlmApiVersion = "LLM-Version";
-    public const string LlmDeployment = "LLM-Deployment";
-    public const string LlmEmbeddingDeployment = "LLM-Embedding-Deployment";
+    public const string DocumentIntelligenceApiKey = "hrms-idp-03-api-key";
+    public const string DocumentIntelligenceEndpoint = "hrms-idp-03-endpoint";
+    public const string LlmApiKey = "mcc-lms-foundry-03-api-key";
+    public const string LlmEndpoint = "mcc-lms-foundry-03-endpoint";
     public const string QdrantApiKey = "Qdrant-API-Key";
-    public const string QdrantEndpoint = "Qdrant-Endpoint";
-    public const string AzureAiSearchAdminKey = "Azure-AI-Search-Admin-Key";
-    public const string AzureAiSearchEndpoint = "Azure-AI-Search-Endpoint";
-    public const string AzureSpeechApiKey = "Azure-Speech-API-Key";
-    public const string AzureSpeechEndpoint = "Azure-Speech-Endpoint";
+    public const string QdrantEndpoint = "Qdrant-EndPoint";
+    public const string AzureSpeechApiKey = "mcc-lms-speech-api-key";
+    public const string AzureSpeechEndpoint = "mcc-lms-speech-endpoint";
+    public const string StorageConnectionString = "mcclmsstorage03-connection-string";
 
     public static readonly string[] All =
     [
@@ -27,15 +22,10 @@ public static class KeyVaultSecretNames
         DocumentIntelligenceEndpoint,
         LlmApiKey,
         LlmEndpoint,
-        LlmOpenAiEndpoint,
-        LlmApiVersion,
-        LlmDeployment,
-        LlmEmbeddingDeployment,
         QdrantApiKey,
         QdrantEndpoint,
-        AzureAiSearchAdminKey,
-        AzureAiSearchEndpoint,
         AzureSpeechApiKey,
-        AzureSpeechEndpoint
+        AzureSpeechEndpoint,
+        StorageConnectionString
     ];
 }

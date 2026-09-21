@@ -29,7 +29,7 @@ public static class AzureFoundryEndpointResolver
         if (string.IsNullOrWhiteSpace(sourceEndpoint))
         {
             throw new InvalidOperationException(
-                "LLM:Endpoint, AgentFoundry:ProjectEndpoint, or LLM-OpenAI-Endpoint (Key Vault) must be configured.");
+                "LLM:Endpoint, AgentFoundry:ProjectEndpoint, or mcc-lms-foundry-03-endpoint (Key Vault) must be configured.");
         }
 
         return NormalizeOpenAIEndpoint(ConvertToOpenAIEndpoint(sourceEndpoint));
@@ -48,7 +48,7 @@ public static class AzureFoundryEndpointResolver
         if (string.IsNullOrWhiteSpace(deployment))
         {
             throw new InvalidOperationException(
-                "LLM-Embedding-Deployment must be configured in Azure Key Vault, or EmbeddingModel must be set in appsettings.");
+                "AgentFoundry:EmbeddingModel must be set in appsettings.");
         }
 
         return deployment;
@@ -67,7 +67,7 @@ public static class AzureFoundryEndpointResolver
         if (string.IsNullOrWhiteSpace(deployment))
         {
             throw new InvalidOperationException(
-                "LLM-Deployment must be configured in Azure Key Vault, or ChatModel must be set in appsettings.");
+                "AgentFoundry:ChatModel must be set in appsettings.");
         }
 
         return deployment;

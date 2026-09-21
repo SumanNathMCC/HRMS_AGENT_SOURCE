@@ -54,6 +54,7 @@ public class AzureKeyVaultService : IAzureKeyVaultService
         try
         {
             var client = CreateClient();
+            var llmEndpoint = await GetSecretValueAsync(client, KeyVaultSecretNames.LlmEndpoint, cancellationToken);
             var secrets = new ApplicationSecrets
             {
                 AzureSqlSecret = await GetSecretValueAsync(client, KeyVaultSecretNames.AzureSqlSecret, cancellationToken),
@@ -61,17 +62,13 @@ public class AzureKeyVaultService : IAzureKeyVaultService
                 DocumentIntelligenceApiKey = await GetSecretValueAsync(client, KeyVaultSecretNames.DocumentIntelligenceApiKey, cancellationToken),
                 DocumentIntelligenceEndpoint = await GetSecretValueAsync(client, KeyVaultSecretNames.DocumentIntelligenceEndpoint, cancellationToken),
                 LlmApiKey = await GetSecretValueAsync(client, KeyVaultSecretNames.LlmApiKey, cancellationToken),
-                LlmEndpoint = await GetSecretValueAsync(client, KeyVaultSecretNames.LlmEndpoint, cancellationToken),
-                LlmOpenAiEndpoint = await GetSecretValueOrNullAsync(client, KeyVaultSecretNames.LlmOpenAiEndpoint, cancellationToken),
-                LlmApiVersion = await GetSecretValueOrNullAsync(client, KeyVaultSecretNames.LlmApiVersion, cancellationToken),
-                LlmDeployment = await GetSecretValueOrNullAsync(client, KeyVaultSecretNames.LlmDeployment, cancellationToken),
-                LlmEmbeddingDeployment = await GetSecretValueOrNullAsync(client, KeyVaultSecretNames.LlmEmbeddingDeployment, cancellationToken),
+                LlmEndpoint = llmEndpoint,
+                LlmOpenAiEndpoint = llmEndpoint,
                 QdrantApiKey = await GetSecretValueAsync(client, KeyVaultSecretNames.QdrantApiKey, cancellationToken),
                 QdrantEndpoint = await GetSecretValueAsync(client, KeyVaultSecretNames.QdrantEndpoint, cancellationToken),
-                AzureAiSearchAdminKey = await GetSecretValueAsync(client, KeyVaultSecretNames.AzureAiSearchAdminKey, cancellationToken),
-                AzureAiSearchEndpoint = await GetSecretValueAsync(client, KeyVaultSecretNames.AzureAiSearchEndpoint, cancellationToken),
                 AzureSpeechApiKey = await GetSecretValueAsync(client, KeyVaultSecretNames.AzureSpeechApiKey, cancellationToken),
                 AzureSpeechEndpoint = await GetSecretValueAsync(client, KeyVaultSecretNames.AzureSpeechEndpoint, cancellationToken),
+                StorageConnectionString = await GetSecretValueAsync(client, KeyVaultSecretNames.StorageConnectionString, cancellationToken),
                 FetchedAtUtc = DateTime.UtcNow
             };
 
@@ -110,21 +107,6 @@ public class AzureKeyVaultService : IAzureKeyVaultService
     {
         var response = await client.GetSecretAsync(secretName, cancellationToken: cancellationToken);
         return response.Value.Value;
-    }
-
-    private static async Task<string?> GetSecretValueOrNullAsync(
-        SecretClient client,
-        string secretName,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await GetSecretValueAsync(client, secretName, cancellationToken);
-        }
-        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
-        {
-            return null;
-        }
     }
 
     private async Task PersistSecretsAsync(ApplicationSecrets secrets, CancellationToken cancellationToken)

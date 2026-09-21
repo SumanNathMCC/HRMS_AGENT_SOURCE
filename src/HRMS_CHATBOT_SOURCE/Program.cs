@@ -27,7 +27,7 @@ builder.Services
     .AddHrmsCors(builder.Configuration)
     .AddHrmsSession(builder.Configuration)
     .AddHrmsFoundationServices(builder.Configuration, applicationSecrets)
-    .AddHrmsAuthentication(builder.Environment)
+    .AddHrmsAuthentication()
     .AddHrmsSwagger();
 
 builder.Services.AddScoped<IUserProfileRepo, UserProfileRepo>();

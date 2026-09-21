@@ -7,7 +7,7 @@ using HRMS_CHATBOT_SOURCE.Infrastructure.Core;
 using HRMS_CHATBOT_SOURCE.Infrastructure.Interfaces;
 using HRMS_CHATBOT_SOURCE.Infrastructure.Security;
 using HRMS_CHATBOT_SOURCE.Infrastructure.Services;
-using MCC.Foundation.Authentication;
+using MCC.Foundation.Chunker.Abstractions;
 using MCC.Foundation.Chunker;
 using MCC.Foundation.CosmosHelper;
 using MCC.Foundation.MSSQLHelper.Extension;
@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 namespace HRMS_CHATBOT_SOURCE.Infrastructure.Extensions;
 public static class ServiceCollectionExtensions
@@ -135,29 +136,65 @@ public static class ServiceCollectionExtensions
             ApiKey = applicationSecrets.QdrantApiKey ?? string.Empty
         });
 
-        services.AddDocumentChunker(configuration);
+        AddHrmsDocumentChunker(services, configuration);
         services.AddHrmsStorageServices(configuration);
 
         return services;
     }
 
-    public static IServiceCollection AddHrmsAuthentication(        this IServiceCollection services,
-        IHostEnvironment environment)
+    private static void AddHrmsDocumentChunker(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddAuthentication(environment.IsProduction(), options =>
-        {
-            options.CookieName = "hrms_admin_token";
-            options.HeaderName = "hrms_admin_token";
-        });
+        services.AddDocumentChunker(configuration);
 
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy("AdminOnly", policy =>
-            {
-                policy.RequireAuthenticatedUser();
-            });
-        });
+        var primaryRegistrationIndex = services
+            .Select((descriptor, index) => (descriptor, index))
+            .LastOrDefault(entry => entry.descriptor.ServiceType == typeof(IDocumentChunkerService))
+            .index;
 
+        if (primaryRegistrationIndex < 0)
+        {
+            return;
+        }
+
+        var primaryRegistration = services[primaryRegistrationIndex];
+        services.RemoveAt(primaryRegistrationIndex);
+
+        services.Insert(primaryRegistrationIndex, new ServiceDescriptor(
+            typeof(IDocumentChunkerService),
+            sp => new ResilientDocumentChunkerService(
+                CreateDocumentChunkerService(sp, primaryRegistration),
+                sp.GetRequiredService<IConfiguration>(),
+                sp.GetRequiredService<ILogger<ResilientDocumentChunkerService>>()),
+            primaryRegistration.Lifetime));
+    }
+
+    private static IDocumentChunkerService CreateDocumentChunkerService(
+        IServiceProvider serviceProvider,
+        ServiceDescriptor descriptor)
+    {
+        if (descriptor.ImplementationInstance is IDocumentChunkerService instance)
+        {
+            return instance;
+        }
+
+        if (descriptor.ImplementationFactory is { } factory)
+        {
+            return (IDocumentChunkerService)factory(serviceProvider);
+        }
+
+        if (descriptor.ImplementationType is { } implementationType)
+        {
+            return (IDocumentChunkerService)ActivatorUtilities.CreateInstance(serviceProvider, implementationType);
+        }
+
+        throw new InvalidOperationException("Unable to create the primary document chunker service.");
+    }
+
+    public static IServiceCollection AddHrmsAuthentication(this IServiceCollection services)
+    {
+        // Admin auth is handled by JwtValidationMiddleware + AdminAuthorizeAttribute.
+        // MCC.Foundation.Authentication uses embedded PEM keys and the same cookie name,
+        // which rejects tokens signed with AppSettings:AdminPrivate ("Invalid token").
         return services;
     }
     public static IServiceCollection AddHrmsSwagger(this IServiceCollection services)

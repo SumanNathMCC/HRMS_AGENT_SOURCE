@@ -146,10 +146,18 @@ public sealed class HrmsChatRuntime : IHrmsChatRuntime
         {
             if (delta.IsGuardrailBlock)
             {
-                agentReplyBuilder.Clear();
-                agentReplyBuilder.Append(GuardrailBlockedReply);
-                lastSpeaker = null;
-                yield return ChatStreamChunk.Delta(GuardrailBlockedReply);
+                if (agentReplyBuilder.Length == 0)
+                {
+                    agentReplyBuilder.Append(GuardrailBlockedReply);
+                    yield return ChatStreamChunk.Delta(GuardrailBlockedReply);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Guardrail blocked further generation; preserving {Length} characters already streamed.",
+                        agentReplyBuilder.Length);
+                }
+
                 break;
             }
 

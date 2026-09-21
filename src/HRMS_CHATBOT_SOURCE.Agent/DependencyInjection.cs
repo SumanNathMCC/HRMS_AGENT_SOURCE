@@ -26,11 +26,16 @@ public static class DependencyInjection
         services.Configure<AgentFoundrySettings>(configuration.GetSection(AgentFoundrySettings.SectionName));
         services.AddSingleton<HandoffWorkflowTemplate>();
 
-        // Recommended = SlangProfanity | Hate | Violence | SelfHarm | Sexual | PromptInjection | Pii,
-        // all served locally (pattern catalogs + ML.NET/ONNX) with no Azure account and no new
-        // Key Vault secret. FailOpen is set explicitly rather than trusting the package default:
-        // a check that cannot run must block, not silently let content through.
-        services.AddMccGuardrails(GuardrailCategory.Recommended, options =>
+        // Recommended minus Sexual: POSH / harassment-policy RAG chunks are legitimate HR
+        // content and were being blocked after PolicyKnowledgeTools returned document text.
+        services.AddMccGuardrails(
+            GuardrailCategory.SlangProfanity
+            | GuardrailCategory.Hate
+            | GuardrailCategory.Violence
+            | GuardrailCategory.SelfHarm
+            | GuardrailCategory.PromptInjection
+            | GuardrailCategory.Pii,
+            options =>
         {
             options.FailOpen = false;
             options.LocalPromptInjection.DetectionMode = MlNetDetectionMode.BuiltIn;

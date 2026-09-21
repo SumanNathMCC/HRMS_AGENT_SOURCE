@@ -1,4 +1,5 @@
 using System.Data;
+using Azure;
 using HRMS_CHATBOT_SOURCE.Domain.Dto.Request;
 using HRMS_CHATBOT_SOURCE.Domain.Models;
 using HRMS_CHATBOT_SOURCE.Foundation.Common;
@@ -72,7 +73,7 @@ public class UserProfileRepo : IUserProfileRepo
             }
         };
 
-        return new MSSQLResponse
+        var response = new MSSQLResponse
         {
             Data = await _sqlHelper.FetchData(new ExecuteDataSetRequest
             {
@@ -86,6 +87,8 @@ public class UserProfileRepo : IUserProfileRepo
             RowsAffected = null,
             OutputParameters = sqlParams.Where(p => p.Direction == ParameterDirection.Output).ToArray()
         };
+
+        return response;
     }
 
     public async Task<string?> GetUserMobileByUserIdAsync(

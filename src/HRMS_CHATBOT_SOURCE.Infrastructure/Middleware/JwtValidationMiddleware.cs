@@ -52,6 +52,13 @@ public sealed class JwtValidationMiddleware
 
         if (!string.IsNullOrWhiteSpace(rawToken))
         {
+            if (ShouldRedirectInvalidTokenToLogin(context))
+            {
+                AdminAuthCookieHelper.Delete(context);
+                context.Response.Redirect("/Admin/Account/Login?session=reset");
+                return;
+            }
+
             await WriteUnauthorizedAsync(context, "Invalid Token");
             return;
         }
@@ -86,7 +93,37 @@ public sealed class JwtValidationMiddleware
             return true;
         }
 
-        return path.StartsWithSegments("/Admin/Account/ValidateLogin", StringComparison.OrdinalIgnoreCase);
+        if (path.StartsWithSegments("/Admin/Account/ValidateLogin", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Admin/Account/Login", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Admin/Account/AccessDenied", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool ShouldRedirectInvalidTokenToLogin(HttpContext context)
+    {
+        if (!context.Request.Path.StartsWithSegments("/Admin", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (context.Request.Headers.TryGetValue("Accept", out var accept)
+            && accept.Any(value => value?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true)
+            && !accept.Any(value => value?.Contains("text/html", StringComparison.OrdinalIgnoreCase) == true))
+        {
+            return false;
+        }
+
+        return HttpMethods.IsGet(context.Request.Method)
+            || HttpMethods.IsHead(context.Request.Method);
     }
 
     private static ClaimsPrincipal CreateAuthenticatedPrincipal(ClaimsPrincipal principal)

@@ -88,7 +88,6 @@
 
             const storage = rememberMe ? localStorage : sessionStorage;
             storage.setItem(TOKEN_KEY, token);
-            this.syncCookie(token, rememberMe);
         },
 
         saveUserProfile: function (user) {
@@ -119,24 +118,13 @@
             localStorage.removeItem(REMEMBER_KEY);
             localStorage.removeItem(PROFILE_KEY);
             sessionStorage.removeItem(PROFILE_KEY);
-            document.cookie = COOKIE_NAME + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-        },
 
-        syncCookie: function (token, rememberMe) {
-            if (!token) return;
-
-            const maxAge = rememberMe ? 7 * 24 * 60 * 60 : 8 * 60 * 60;
             const secure = location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = `${COOKIE_NAME}=${token}; Path=/; Max-Age=${maxAge}; SameSite=Lax${secure}`;
+            document.cookie = COOKIE_NAME + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax' + secure;
         },
 
         restoreSession: function () {
-            const rememberMe = localStorage.getItem(REMEMBER_KEY) === 'true';
-            const token = this.getToken();
-            if (token) {
-                this.syncCookie(token, rememberMe);
-            }
-            return token;
+            return this.getToken();
         },
 
         getAuthHeaders: function () {

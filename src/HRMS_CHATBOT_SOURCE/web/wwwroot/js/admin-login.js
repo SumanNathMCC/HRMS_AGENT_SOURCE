@@ -15,6 +15,8 @@
 
         let isSubmitting = false;
 
+        window.HrmsAdminAuth?.clearToken();
+
         if (togglePassword && passwordInput && eyeIcon) {
             togglePassword.addEventListener('click', function () {
                 const isPassword = passwordInput.type === 'password';
@@ -75,6 +77,7 @@
             isSubmitting = true;
             setLoading(true);
             hideError();
+            window.HrmsAdminAuth?.clearToken();
 
             try {
                 const controller = new AbortController();
@@ -84,6 +87,7 @@
 
                 const response = await fetch(loginUrl, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
@@ -98,9 +102,15 @@
 
                 window.clearTimeout(timeoutId);
 
-                const data = await response.json().catch(function () {
-                    return {};
-                });
+                const responseText = await response.text();
+                let data = {};
+                if (responseText) {
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch {
+                        data = { message: responseText.trim() };
+                    }
+                }
 
                 if (!response.ok) {
                     showError(data.error_message || data.message || 'Invalid user ID or password.');

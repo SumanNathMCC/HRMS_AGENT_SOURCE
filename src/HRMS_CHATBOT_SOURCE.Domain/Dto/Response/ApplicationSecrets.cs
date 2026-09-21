@@ -52,6 +52,9 @@ public class ApplicationSecrets
     [JsonProperty("azure_speech_endpoint")]
     public string? AzureSpeechEndpoint { get; set; }
 
+    [JsonProperty("storage_connection_string")]
+    public string? StorageConnectionString { get; set; }
+
     [JsonProperty("fetched_at_utc")]
     public DateTime FetchedAtUtc { get; set; } = DateTime.UtcNow;
 }

@@ -27,8 +27,6 @@ public static class WebApplicationExtensions
         app.UseRouting();
         app.UseCors("HrmsCorsPolicy");
         app.UseSession();
-        app.UseAuthentication();
-        app.UseAuthorization();
         app.UseJwtValidationMiddleware();
 
         app.MapControllers();

@@ -3,9 +3,17 @@
 
     var VOICE_DISABLED_MESSAGE = "Voice feature is disabled for you.";
 
+    // Root-absolute paths — relative "api/..." breaks on /chat and /Chat (becomes /chat/api/...).
+    var API = {
+        activeMobileNumbers: "/api/GetActiveMobileNumbersAsync",
+        voiceInputEnabled: "/api/GetVoiceInputEnabledAsync",
+        transcribeVoice: "/api/TranscribeVoiceAsync",
+        chatStream: "/api/ChatStreamAsync"
+    };
+
     var MobileDirectoryApiService = {
         getActiveMobileNumbers: function (signal) {
-            return fetch("api/GetActiveMobileNumbersAsync", { method: "GET", signal: signal })
+            return fetch(API.activeMobileNumbers, { method: "GET", signal: signal })
                 .then(function (response) {
                     if (!response.ok) {
                         throw new Error("HTTP " + response.status);
@@ -17,7 +25,7 @@
 
     var VoiceApiService = {
         getVoiceInputEnabled: function (mobile, signal) {
-            var url = "api/GetVoiceInputEnabledAsync?mobile=" + encodeURIComponent(mobile);
+            var url = API.voiceInputEnabled + "?mobile=" + encodeURIComponent(mobile);
             return fetch(url, { method: "GET", signal: signal })
                 .then(function (response) {
                     if (!response.ok) {
@@ -32,7 +40,7 @@
             formData.append("mobile", mobile);
             formData.append("audio", wavBlob, "voice.wav");
 
-            return fetch("api/TranscribeVoiceAsync", {
+            return fetch(API.transcribeVoice, {
                 method: "POST",
                 signal: signal,
                 body: formData
@@ -49,7 +57,7 @@
 
     var ChatApiService = {
         sendMessage: function (mobile, message, conversationId, signal, onDelta) {
-            return fetch("api/ChatStreamAsync", {
+            return fetch(API.chatStream, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -455,7 +463,13 @@
             .then(function (data) {
                 convo.conversationId = (data && data.conversation_id) || convo.conversationId;
                 pendingMsg.pending = false;
-                pendingMsg.text = (data && data.reply) || pendingMsg.text || "(no reply)";
+
+                // Keep streamed deltas when present. The done chunk can be guardrail-only
+                // even though useful RAG text was already streamed (same as test-chat-widget.js).
+                if (!pendingMsg.text || !pendingMsg.text.trim()) {
+                    pendingMsg.text = (data && data.reply) || "(no reply)";
+                }
+
                 pendingMsg.time = new Date();
                 pendingMsg.preview = pendingMsg.text;
 

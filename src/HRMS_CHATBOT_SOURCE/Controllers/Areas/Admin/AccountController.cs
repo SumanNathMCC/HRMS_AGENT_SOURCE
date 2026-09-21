@@ -27,7 +27,7 @@ public class AccountController : Controller
             string.Equals(Request.Query["session"], "reset", StringComparison.OrdinalIgnoreCase))
         {
             _adminLogic.Logout();
-            Response.Cookies.Delete("hrms_admin_token", new CookieOptions { Path = "/" });
+            AdminAuthCookieHelper.Delete(HttpContext);
             ViewData["ClearClientAuth"] = true;
         }
         else if (AdminAuthHelper.IsAuthenticatedAdmin(HttpContext))
@@ -37,7 +37,7 @@ public class AccountController : Controller
 
         if (Request.Cookies.ContainsKey("hrms_admin_token"))
         {
-            Response.Cookies.Delete("hrms_admin_token", new CookieOptions { Path = "/" });
+            AdminAuthCookieHelper.Delete(HttpContext);
             ViewData["ClearClientAuth"] = true;
         }
 
@@ -72,7 +72,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    [Authorize]
+    [AdminAuthorize]
     public IActionResult Logout()
     {
         _adminLogic.Logout();
@@ -80,7 +80,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    [Authorize]
+    [AdminAuthorize]
     [Produces("application/json")]
     public LogoutResponse LogoutPost()
     {
